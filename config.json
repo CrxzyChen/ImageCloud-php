@@ -1,0 +1,22 @@
+{
+  "project_name": "SimplePhp",
+  "version": "0.0.0.1",
+  "image_server": {
+    "host": "10.0.0.2",
+    "port": "4396",
+    "root": "image-pool"
+  },
+  "database": {
+    "host": "10.0.0.2",
+    "port": "27017",
+    "password": "Crxzy@123520",
+    "username": "admin"
+  },
+  "alias": {
+    "database": "db"
+  },
+  "default": {
+    "controller": "Index",
+    "method": "Index"
+  }
+}
