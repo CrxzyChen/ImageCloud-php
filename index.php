@@ -40,7 +40,6 @@ if (!isset($_GET["controller"])) {
 }
 
 $instance = $controller->newInstance();
-
 if (isset($_GET["method"])) {
     $view = $instance->{$_GET["method"]}();
 } else if ($controller->hasMethod($default_method)) {

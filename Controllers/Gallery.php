@@ -9,7 +9,7 @@
 namespace Controllers;
 
 
-class Index extends ControllerBase
+class Gallery extends ControllerBase
 {
     private $image_cloud;
 
