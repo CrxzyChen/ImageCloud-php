@@ -43,6 +43,13 @@ class ImageCloud extends DBModel
         // TODO: Implement setDriver() method.
     }
 
+    /**
+     * @param $thumb_id
+     * @param $image_name
+     * @param string $image_form
+     * @return resource
+     * @throws \SimplePhp\Exception
+     */
     public function getImageResource($thumb_id, $image_name, $image_form = "jpg")
     {
         $image_pool = $this->connect->Database("image_cloud")->Collection("image_pool");

@@ -9,6 +9,13 @@
 namespace Controllers;
 
 
+use Models\ImageCloud;
+
+/**
+ * Class Gallery
+ * @package Controllers
+ * @property ImageCloud image_cloud
+ */
 class Gallery extends ControllerBase
 {
     private $image_cloud;

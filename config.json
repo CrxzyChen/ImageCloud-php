@@ -8,7 +8,7 @@
   },
   "database": {
     "host": "10.0.0.2",
-    "port": "27017",
+    "port": "27018",
     "password": "Crxzy@123520",
     "username": "admin"
   },
