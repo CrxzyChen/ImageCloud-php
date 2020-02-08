@@ -8,7 +8,13 @@
 
 namespace SimplePhp;
 
+use Drivers\DatabaseDriver;
 
+/**
+ * Class Database
+ * @package SimplePhp
+ * @property DatabaseDriver $driver
+ */
 class Database
 {
     private $driver;
@@ -58,7 +64,7 @@ class Database
 
     /**
      * @param $collection
-     * @return mixed
+     * @return DatabaseDriver
      */
     public function Collection($collection)
     {

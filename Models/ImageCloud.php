@@ -9,6 +9,8 @@
 namespace Models;
 
 
+use MongoDB\BSON\ObjectId;
+
 class ImageCloud extends DBModel
 {
     private $config;
@@ -30,6 +32,17 @@ class ImageCloud extends DBModel
             }
         }
         return $image_name;
+    }
+
+    public function getDownloadStatus($task_id)
+    {
+        $downloader = $this->connect->Database("image_cloud")->Collection("downloader");
+        $task = $downloader->find_one(array("_id" => new ObjectId($task_id)));
+        if ($task != null) {
+            return array("status" => "uncompleted", "count" => $task->count, "remain" => sizeof($task->targets));
+        } else {
+            return array("status" => "completed");
+        }
     }
 
     protected function onCreate()
@@ -59,7 +72,14 @@ class ImageCloud extends DBModel
         } else {
             throw new \SimplePhp\Exception("error: $image_name.$image_form is not exist!");
         }
-        $image = file_get_contents("http://{$this->config->host}:{$this->config->port}" .DIRECTORY_SEPARATOR. $this->config->root . DIRECTORY_SEPARATOR . $result->thumb_path . DIRECTORY_SEPARATOR . $image_name);
+        $image = file_get_contents("http://{$this->config->host}:{$this->config->port}" . DIRECTORY_SEPARATOR . $this->config->root . DIRECTORY_SEPARATOR . $result->thumb_path . DIRECTORY_SEPARATOR . $image_name);
         return imagecreatefromstring($image);
+    }
+
+    public function downloadResource($thumb_id)
+    {
+        exec("python Scripts/index.py  --download $thumb_id", $task_id, $return_var);
+        pclose(popen("python Scripts/index.py --start $task_id[0] &", 'r'));
+        return $task_id;
     }
 }

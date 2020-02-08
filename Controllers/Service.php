@@ -29,13 +29,13 @@ class Service extends ControllerBase
 
     public function Download()
     {
-        $ch = curl_init();
+        if (isset($_GET["thumb_id"])) {
+            return $this->ic->downloadResource($_GET["thumb_id"]);
+        }
+    }
 
-        curl_setopt($ch, CURLOPT_URL, "http://www.baidu.com/");
-        curl_setopt($ch, CURLOPT_HEADER, 0);
-
-        curl_exec($ch);
-
-        curl_close($ch);
+    public function DownloadStatus()
+    {
+        return $this->ic->getDownloadStatus($_GET["task_id"]);
     }
 }
