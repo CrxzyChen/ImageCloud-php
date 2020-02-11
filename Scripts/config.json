@@ -1,0 +1,10 @@
+{
+  "version": "0.0.0.1",
+  "app": "image_cloud",
+  "mongodb": {
+    "password": "Crxzy@123520",
+    "username": "admin",
+    "host": "10.0.0.2",
+    "port": "27017"
+  }
+}
