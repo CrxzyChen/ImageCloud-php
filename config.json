@@ -7,10 +7,20 @@
     "root": "image-pool"
   },
   "database": {
-    "host": "10.0.0.2",
-    "port": "27018",
-    "password": "Crxzy@123520",
-    "username": "admin"
+    "ImageCloud": {
+      "driver": "MongoDB",
+      "host": "10.0.0.2",
+      "port": "27018",
+      "password": "Crxzy@123520",
+      "username": "admin"
+    },
+    "default": {
+      "driver": "MongoDB",
+      "host": "10.0.0.2",
+      "port": "27017",
+      "password": "Crxzy@123520",
+      "username": "admin"
+    }
   },
   "alias": {
     "database": "db"

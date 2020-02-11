@@ -12,24 +12,25 @@ namespace Drivers;
 class MongoDB implements DatabaseDriver
 {
     private $manager;
-    private $db_config;
     private $uri;
     private $bulk;
     private $database;
     private $collection;
-
-    /**
-     * MongoDB constructor.
-     * @throws \Exception
-     */
-    public function __construct()
+//
+//    /**
+//     * MongoDB constructor.
+//     * @param $host
+//     * @param $port
+//     * @param $username
+//     * @param $password
+//     */
+    public function __construct($username, $password, $host, $port = 27017)
     {
-        $this->db_config = \SimplePhp\Config::get("db");
+        $username = urlencode($username);
+        $password = urlencode($password);
 
-        $username = urlencode($this->db_config->username);
-        $password = urlencode($this->db_config->password);
+        $this->uri = "mongodb://$username:$password@$host:$port";
 
-        $this->uri = "mongodb://{$username}:{$password}@{$this->db_config->host}:{$this->db_config->port}";
         $this->manager = new \MongoDB\Driver\Manager($this->uri);
         $this->bulk = new \MongoDB\Driver\BulkWrite();
     }
@@ -42,8 +43,10 @@ class MongoDB implements DatabaseDriver
      */
     public function find($query = array(), $option = array())
     {
+        $this->manager = new \MongoDB\Driver\Manager($this->uri);
         $query = new \MongoDB\Driver\Query($query, $option);
         $cursor = $this->manager->executeQuery("$this->database.$this->collection", $query);
+
         $documents = [];
         foreach ($cursor as $document) {
             $documents[] = $document;
@@ -103,6 +106,10 @@ class MongoDB implements DatabaseDriver
     public function find_one($query)
     {
         $result = $this->find($query, array("limit" => 1));
-        return $result ? $result[0] : null;
+        if (isset($result[0])) {
+            return $result[0];
+        } else {
+            return null;
+        }
     }
 }

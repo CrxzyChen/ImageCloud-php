@@ -45,6 +45,27 @@ class ImageCloud extends DBModel
         }
     }
 
+    /**
+     * @param $url
+     * @param $handle
+     * @return bool
+     */
+    public function testUrl($url): bool
+    {
+        $handle = curl_init($url);
+        curl_setopt($handle, CURLOPT_RETURNTRANSFER, TRUE);
+        curl_setopt($handle, CURLOPT_CONNECTTIMEOUT, 10);//设置超时时间
+        curl_exec($handle);
+        //检查是否404（网页找不到）
+        $httpCode = curl_getinfo($handle, CURLINFO_HTTP_CODE);
+        curl_close($handle);
+        if ($httpCode == 404) {
+            return false;
+        } else {
+            return true;
+        }
+    }
+
     protected function onCreate()
     {
         $this->config = \SimplePhp\Config::get('image_server');
@@ -72,7 +93,14 @@ class ImageCloud extends DBModel
         } else {
             throw new \SimplePhp\Exception("error: $image_name.$image_form is not exist!");
         }
-        $image = file_get_contents("http://{$this->config->host}:{$this->config->port}" . DIRECTORY_SEPARATOR . $this->config->root . DIRECTORY_SEPARATOR . $result->thumb_path . DIRECTORY_SEPARATOR . $image_name);
+        $local_url = "http://{$this->config->host}:{$this->config->port}" . DIRECTORY_SEPARATOR . $this->config->root . DIRECTORY_SEPARATOR . $result->thumb_path . DIRECTORY_SEPARATOR . $image_name;
+        $source_url = $result->source[0] . DIRECTORY_SEPARATOR . $image_name;
+        if ($this->testUrl($local_url)) {
+            $image = file_get_contents($local_url);
+        } else {
+            $image = file_get_contents($source_url);
+        }
+
         return imagecreatefromstring($image);
     }
 
@@ -81,5 +109,10 @@ class ImageCloud extends DBModel
         exec("python Scripts/index.py  --download $thumb_id", $task_id, $return_var);
         pclose(popen("python Scripts/index.py --start $task_id[0] &", 'r'));
         return $task_id;
+    }
+
+    protected function onInitial()
+    {
+        // TODO: Implement onInitial() method.
     }
 }

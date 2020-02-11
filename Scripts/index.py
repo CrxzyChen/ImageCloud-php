@@ -8,7 +8,7 @@ from ImageCloud import ImageCloud, THUMB_COVER, THUMB_ALL
 
 
 def read_config():
-    with open("Scripts/config.json", "r") as config_file:
+    with open("/var/www/Scripts/config.json", "r") as config_file:
         config = json.loads(config_file.read())
     return config["mongodb"]["username"], config["mongodb"]["password"], config["mongodb"]["host"], config["mongodb"][
         "port"]

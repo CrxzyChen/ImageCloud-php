@@ -9,12 +9,10 @@
 namespace Controllers;
 
 
-use Models\ImageCloud;
-
 /**
  * Class Gallery
  * @package Controllers
- * @property ImageCloud image_cloud
+ * @property \Models\ImageCloud image_cloud
  */
 class Gallery extends ControllerBase
 {
@@ -26,6 +24,10 @@ class Gallery extends ControllerBase
         // TODO: Implement onCreate() method.
     }
 
+    /**
+     * @return resource
+     * @throws \SimplePhp\Exception
+     */
     public function Index()
     {
         $image_resource = $this->image_cloud->getImageResource($_GET["gallery"], $_GET["image_name"], $_GET["image_form"]);

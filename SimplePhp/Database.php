@@ -8,53 +8,30 @@
 
 namespace SimplePhp;
 
-use Drivers\DatabaseDriver;
 
 /**
  * Class Database
  * @package SimplePhp
- * @property DatabaseDriver $driver
+ * @property \Drivers\DatabaseDriver $driver
  */
 class Database
 {
-    private $driver;
-
     /**
      * Database constructor.
      * Database([args1,args2,*])
-     * args[0]:set driver
-     * args[1]:set database
-     */
-    public function __construct()
-    {
-        $args = func_get_args();
-        switch (sizeof($args)) {
-            case 1:
-                $this->Driver($args[0]);
-                break;
-            case 2:
-                $this->Driver($args[0]);
-                $this->Database($args[1]);
-                break;
-        }
-    }
-
-    /**
-     * @param $driver
-     * @return $this
+     * @param $config
      * @throws \ReflectionException
      */
-    public function Driver($driver)
+    public function __construct($config)
     {
-        $class = new \ReflectionClass("Drivers\\$driver");
-        $instance = $class->newInstance();
+        $class = new \ReflectionClass("Drivers\\$config->driver");
+        $instance = $class->newInstance($config->username, $config->password, $config->host, $config->port);
         $this->driver = $instance;
-        return $this;
     }
 
     /**
      * @param $database
-     * @return $this
+     * @return \SimplePhp\Database
      */
     public function Database($database)
     {
@@ -64,7 +41,7 @@ class Database
 
     /**
      * @param $collection
-     * @return DatabaseDriver
+     * @return \Drivers\DatabaseDriver
      */
     public function Collection($collection)
     {

@@ -8,24 +8,49 @@
 
 namespace Models;
 
+use SimplePhp\Exception;
+use stdClass;
+
 abstract class DBModel
 {
     protected $connect;
-    protected $driver;
+    protected $db_config;
+    protected $db;
 
+    /**
+     * DBModel constructor.
+     * @throws Exception
+     * @throws \ReflectionException
+     */
     public function __construct()
     {
+        $this->onInitial();
+        $this->connect = new \SimplePhp\Database($this->getConfig());
         $this->onCreate();
-        $this->setDriver();
-        $this->connect = new \SimplePhp\Database($this->getDriver());
     }
 
-    abstract protected function setDriver();
-
+    abstract protected function onInitial();
     abstract protected function onCreate();
 
-    private function getDriver(): string
+    /**
+     * @return stdClass
+     * @throws Exception
+     */
+    private function getConfig():stdClass
     {
-        return $this->driver;
+        $class = get_class($this);
+        $class = explode("\\", $class);
+        try {
+            $db_config = \SimplePhp\Config::get("db.$class[1]");
+        } catch (Exception $e) {
+            $db_config = \SimplePhp\Config::get("db.default");
+        }
+        return $db_config;
+    }
+
+    public function __get($name)
+    {
+        $this->connect->Collection($name);
+        return $this;
     }
 }
