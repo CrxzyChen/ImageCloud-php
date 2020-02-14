@@ -37,7 +37,7 @@ class ImageCloud extends DBModel
     public function getDownloadStatus($task_id)
     {
         $downloader = $this->connect->Database("image_cloud")->Collection("downloader");
-        $task = $downloader->find_one(array("_id" => new ObjectId($task_id)));
+        $task = $downloader->findOne(array("_id" => new ObjectId($task_id)));
         if ($task != null) {
             return array("status" => "uncompleted", "count" => $task->count, "remain" => sizeof($task->targets));
         } else {

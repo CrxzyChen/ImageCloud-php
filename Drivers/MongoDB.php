@@ -8,7 +8,6 @@
 
 namespace Drivers;
 
-
 class MongoDB implements DatabaseDriver
 {
     private $manager;
@@ -16,15 +15,15 @@ class MongoDB implements DatabaseDriver
     private $bulk;
     private $database;
     private $collection;
-//
-//    /**
-//     * MongoDB constructor.
-//     * @param $host
-//     * @param $port
-//     * @param $username
-//     * @param $password
-//     */
-    public function __construct($username, $password, $host, $port = 27017)
+
+    /**
+     * MongoDB constructor.
+     * @param string $username
+     * @param string $password
+     * @param string $host
+     * @param int $port
+     */
+    public function __construct(string $username, string $password, string $host, int $port = 27017)
     {
         $username = urlencode($username);
         $password = urlencode($password);
@@ -32,7 +31,6 @@ class MongoDB implements DatabaseDriver
         $this->uri = "mongodb://$username:$password@$host:$port";
 
         $this->manager = new \MongoDB\Driver\Manager($this->uri);
-        $this->bulk = new \MongoDB\Driver\BulkWrite();
     }
 
     /**
@@ -43,7 +41,6 @@ class MongoDB implements DatabaseDriver
      */
     public function find($query = array(), $option = array())
     {
-        $this->manager = new \MongoDB\Driver\Manager($this->uri);
         $query = new \MongoDB\Driver\Query($query, $option);
         $cursor = $this->manager->executeQuery("$this->database.$this->collection", $query);
 
@@ -55,12 +52,37 @@ class MongoDB implements DatabaseDriver
     }
 
     /**
+     * @param array $query
+     * @param array $update
+     * @param array $option
+     * @return array
+     * @throws \MongoDB\Driver\Exception\Exception
+     * @link https://docs.mongodb.com/manual/reference/method/db.collection.findAndModify/
+     */
+    public function findAndModify($query = array(), $update = array(), $option = array())
+    {
+        $command_array = array("findAndModify" => "$this->collection",
+            "query" => $query, "update" => $update);
+        $command_array = array_merge($command_array, $option);
+        $command = new \MongoDB\Driver\Command($command_array);
+        $cursor = $this->manager->executeCommand($this->database, $command);
+        $documents = [];
+        foreach ($cursor as $document) {
+            $documents[] = $document->value;
+        }
+        return $documents;
+    }
+
+    /**
      * @param $document
      * @return mixed
      */
     public function insert($document)
     {
-        $result = $this->bulk->insert($document);
+        $bulk = new \MongoDB\Driver\BulkWrite();
+        $bulk->insert($document);
+        $result = $this->manager->executeBulkWrite("$this->database.$this->collection", $bulk);
+
         return $result->getInsertedCount();
     }
 
@@ -103,7 +125,7 @@ class MongoDB implements DatabaseDriver
      * @return mixed
      * @throws \MongoDB\Driver\Exception\Exception
      */
-    public function find_one($query)
+    public function findOne($query)
     {
         $result = $this->find($query, array("limit" => 1));
         if (isset($result[0])) {
@@ -111,5 +133,48 @@ class MongoDB implements DatabaseDriver
         } else {
             return null;
         }
+    }
+
+    /**
+     * @param $keys
+     * @param $options
+     * @return \MongoDB\Driver\Cursor
+     * @throws \MongoDB\Driver\Exception\Exception
+     */
+    public function createIndexes($keys, $options)
+    {
+        $indexes = array();
+        foreach ($keys as $keyName => $sort) {
+            $index = array(
+                "name" => "$keyName",
+                "key" => ["$keyName" => $sort],
+                "ns" => "$this->database.$this->collection",
+            );
+            $index = array_merge($index, $options);
+            $indexes[] = $index;
+        }
+        $command = new \MongoDB\Driver\Command([
+            "createIndexes" => "$this->collection",
+            "indexes" => $indexes
+        ]);
+        $cursor = $this->manager->executeCommand($this->database, $command);
+        return $cursor;
+    }
+
+    /**
+     * @param array $query
+     * @return int
+     * @throws \MongoDB\Driver\Exception\Exception
+     */
+    public function count($query = array()): int
+    {
+        $command = new \MongoDB\Driver\Command(array(
+            'count' => $this->collection,
+            'query' => $query ?: new \stdClass(),
+        ));
+
+        $cursor = $this->manager->executeCommand($this->database, $command);
+        $result = $cursor->toArray();
+        return $result[0]->n;
     }
 }
