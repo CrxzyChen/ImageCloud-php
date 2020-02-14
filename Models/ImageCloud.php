@@ -87,7 +87,7 @@ class ImageCloud extends DBModel
     public function getImageResource($thumb_id, $image_name, $image_form = "jpg")
     {
         $image_pool = $this->connect->Database("image_cloud")->Collection("image_pool");
-        $result = $image_pool->find_one(array("thumb_id" => (int)$thumb_id));
+        $result = $image_pool->findOne(array("thumb_id" => (int)$thumb_id));
         if (null != ($name = $this->getImageName($image_name, $image_form, $result))) {
             $image_name = $name;
         } else {
