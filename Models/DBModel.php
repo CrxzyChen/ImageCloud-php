@@ -15,7 +15,7 @@ abstract class DBModel
 {
     protected $connect;
     protected $db_config;
-    protected $db;
+    protected $database;
 
     /**
      * DBModel constructor.
@@ -24,19 +24,21 @@ abstract class DBModel
      */
     public function __construct()
     {
-        $this->onInitial();
         $this->connect = new \SimplePhp\Database($this->getConfig());
+        $this->setDatabase($this->database);
+        $this->connect->Database($this->database);
         $this->onCreate();
     }
 
-    abstract protected function onInitial();
+    abstract protected function setDatabase(&$database);
+
     abstract protected function onCreate();
 
     /**
      * @return stdClass
      * @throws Exception
      */
-    private function getConfig():stdClass
+    private function getConfig(): stdClass
     {
         $class = get_class($this);
         $class = explode("\\", $class);
@@ -50,7 +52,6 @@ abstract class DBModel
 
     public function __get($name)
     {
-        $this->connect->Collection($name);
-        return $this;
+        return $this->connect->Collection($name);
     }
 }

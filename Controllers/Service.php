@@ -15,6 +15,10 @@ use Models\ImageCloud;
  */
 class Service extends ControllerBase
 {
+    /**
+     * @throws \ReflectionException
+     * @throws \SimplePhp\Exception
+     */
     protected function onCreate()
     {
         $this->ic = new ImageCloud();
@@ -26,6 +30,14 @@ class Service extends ControllerBase
         return array("message" => "connect success!");
     }
 
+    public function getThumbInfo()
+    {
+        if (isset($_GET["thumb_id"])) {
+            return $this->ic->getThumbInfo($_GET["thumb_id"]);
+        } else {
+            throw new \SimplePhp\Exception("less necessary parameter!");
+        }
+    }
 
     public function Download()
     {
