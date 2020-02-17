@@ -13,7 +13,7 @@ interface DatabaseDriver
 {
     public function find($query, $option);
 
-    public function findOne($query);
+    public function findOne($query, $option);
 
     public function insert($document);
 

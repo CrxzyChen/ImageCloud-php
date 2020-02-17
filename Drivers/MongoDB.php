@@ -122,12 +122,14 @@ class MongoDB implements DatabaseDriver
 
     /**
      * @param $query
+     * @param array $option
      * @return mixed
      * @throws \MongoDB\Driver\Exception\Exception
      */
-    public function findOne($query)
+    public function findOne($query, $option = array())
     {
-        $result = $this->find($query, array("limit" => 1));
+        $option = array_merge($option, array("limit" => 1));
+        $result = $this->find($query, $option);
         if (isset($result[0])) {
             return $result[0];
         } else {
