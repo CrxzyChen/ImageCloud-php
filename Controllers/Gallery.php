@@ -30,7 +30,11 @@ class Gallery extends ControllerBase
      */
     public function Index()
     {
-        $image_resource = $this->image_cloud->getImageResource($_GET["gallery"], $_GET["image_name"], $_GET["image_form"]);
-        return $image_resource;
+        if (isset($_GET["gallery"]) && isset($_GET["image_name"]) && isset($_GET["image_form"])) {
+            $height = isset($_GET["height"]) ? $_GET["height"] : 0;
+            $width = isset($_GET["width"]) ? $_GET["width"] : 0;
+            $image_resource = $this->image_cloud->getImageResource($_GET["gallery"], $_GET["image_name"], $_GET["image_form"], $width, $height);
+            return $image_resource;
+        }
     }
 }

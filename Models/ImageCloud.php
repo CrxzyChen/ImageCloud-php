@@ -11,6 +11,7 @@ namespace Models;
 
 use Drivers\MongoDB;
 use MongoDB\BSON\ObjectId;
+use SimplePhp\Image;
 use SimplePhp\Network;
 
 /**
@@ -61,16 +62,18 @@ class ImageCloud extends DBModel
     }
 
     /**
-     * @param $thumb_id
-     * @param $image_name
+     * @param int $thumb_id
+     * @param string $image_name
      * @param string $image_form
+     * @param int $width
+     * @param int $height
      * @return resource
      * @throws \SimplePhp\Exception
      */
-    public function getImageResource($thumb_id, $image_name, $image_form = "jpg")
+    public function getImageResource(int $thumb_id, string $image_name, string $image_form = "jpg", int $width = 0, int $height = 0)
     {
         $image_pool = $this->connect->Database("image_cloud")->Collection("image_pool");
-        $result = $image_pool->findOne(array("thumb_id" => (int)$thumb_id));
+        $result = $image_pool->findOne(array("thumb_id" => $thumb_id), array());
         if (null != ($name = $this->getImageName($image_name, $image_form, $result))) {
             $image_name = $name;
         } else {
@@ -79,13 +82,13 @@ class ImageCloud extends DBModel
         $local_url = "http://{$this->config->host}:{$this->config->port}" . DIRECTORY_SEPARATOR . $this->config->root . DIRECTORY_SEPARATOR . $result->thumb_path . DIRECTORY_SEPARATOR . $image_name;
         $source_url = $result->source[0] . DIRECTORY_SEPARATOR . $image_name;
         if (Network::checkConnect($local_url)) {
-            $image = file_get_contents($local_url);
+            $image_string = file_get_contents($local_url);
         } else {
-            $image = file_get_contents($source_url);
+            $image_string = file_get_contents($source_url);
         }
-
-        return imagecreatefromstring($image);
+        return Image::pressImage($image_string, $width, $height, IMAGE::CROP_MODE_START);
     }
+
 
     public function downloadResource($thumb_id)
     {

@@ -6,6 +6,9 @@ define("LOCAL_ROOT", $_SERVER["DOCUMENT_ROOT"] . dirname($_SERVER["SCRIPT_NAME"]
 define("HTTP_ROOT", $protocol . $_SERVER['HTTP_HOST'] . dirname($_SERVER['REQUEST_URI']));
 define("SIMPLEPHP_DIR", LOCAL_ROOT . DIRECTORY_SEPARATOR . "SimplePhp");
 define("DRIVERS_DIR", LOCAL_ROOT . DIRECTORY_SEPARATOR . "Drivers");
+//set timezone
+date_default_timezone_set('Asia/Shanghai');
+
 //start session
 if (!isset($_SESSION)) {
     session_start();
@@ -34,23 +37,45 @@ $default_controller = \SimplePhp\Config::get("default.controller", true);
 $default_method = \SimplePhp\Config::get("default.method");
 
 if (!isset($_GET["controller"])) {
-    $controller = new ReflectionClass("Controllers\\$default_controller");
+    $controller = "Controllers\\$default_controller";
 } else {
-    $controller = new ReflectionClass("Controllers\\" . $_GET["controller"]);
+    $controller = "Controllers\\" . $_GET["controller"];
 }
 
-$instance = $controller->newInstance();
 if (isset($_GET["method"])) {
-    $view = $instance->{$_GET["method"]}();
-} else if ($controller->hasMethod($default_method)) {
-    $view = $instance->{$default_method}();
+    $method = $_GET["method"];
 } else {
-    die("Welcome Simple Vol. " . \SimplePhp\Config::get("version"));
+    $method = $default_method;
+}
+
+try {
+    $reflection_class = new ReflectionClass($controller);
+    $reflection_method = $reflection_class->getMethod($method);
+    $reflection_params = $reflection_method->getParameters();
+    $reflection_param_modifier = [];
+    foreach ($reflection_params as $param) {
+        if ($param->isDefaultValueAvailable()) {
+            $default_value = $param->getDefaultValue();
+        } else {
+            $default_value = null;
+        }
+        if ($param->hasType()) {
+            $type = $param->getType()->getName();
+        } else {
+            $type = null;
+        }
+        $reflection_param_modifier[] = [$default_value, $type];
+    }
+
+    $instance = $reflection_class->newInstance();
+    $view = $reflection_method->invoke($instance);
+} catch (ReflectionException $e) {
+    die("Welcome SimplePhp Vol.0.0.0.1!");
 }
 
 ob_start();
 
-if (is_array($view)) {
+if (is_array($view) || is_object($view)) {
     header("content-type:text/json");
     echo json_encode($view);
 } else if (is_resource($view) && get_resource_type($view) == "gd") {
@@ -73,7 +98,7 @@ if (is_array($view)) {
     }
 } else {
     header("content-type:text/html");
-    echo json_encode($view);
+    echo $view;
 }
 
 ob_end_flush();

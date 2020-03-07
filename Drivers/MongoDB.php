@@ -8,6 +8,8 @@
 
 namespace Drivers;
 
+use MongoDB\Driver\Cursor;
+
 class MongoDB implements DatabaseDriver
 {
     private $manager;
@@ -61,8 +63,10 @@ class MongoDB implements DatabaseDriver
      */
     public function findAndModify($query = array(), $update = array(), $option = array())
     {
-        $command_array = array("findAndModify" => "$this->collection",
-            "query" => $query, "update" => $update);
+        $command_array = array(
+            "findAndModify" => "$this->collection",
+            "query" => $query,
+            "update" => $update);
         $command_array = array_merge($command_array, $option);
         $command = new \MongoDB\Driver\Command($command_array);
         $cursor = $this->manager->executeCommand($this->database, $command);
@@ -178,5 +182,25 @@ class MongoDB implements DatabaseDriver
         $cursor = $this->manager->executeCommand($this->database, $command);
         $result = $cursor->toArray();
         return $result[0]->n;
+    }
+
+    /**
+     * @param array $pipeline
+     * @return array
+     * @throws \MongoDB\Driver\Exception\Exception
+     */
+    public function aggregate(array $pipeline)
+    {
+        $command = new \MongoDB\Driver\Command(array(
+            'aggregate' => $this->collection,
+            'pipeline' => $pipeline,
+            'cursor' => new \stdClass()
+        ));
+        $cursor = $this->manager->executeCommand($this->database, $command);
+        $documents = [];
+        foreach ($cursor as $document) {
+            $documents[] = $document;
+        }
+        return $documents;
     }
 }
