@@ -33,6 +33,7 @@ if (!file_exists(LOCAL_ROOT . DIRECTORY_SEPARATOR . "config.json")) {
     require_once SIMPLEPHP_DIR . DIRECTORY_SEPARATOR . "Config.php";
 }
 
+
 $default_controller = \SimplePhp\Config::get("default.controller", true);
 $default_method = \SimplePhp\Config::get("default.method");
 
@@ -51,31 +52,46 @@ if (isset($_GET["method"])) {
 try {
     $reflection_class = new ReflectionClass($controller);
     $reflection_method = $reflection_class->getMethod($method);
-    $reflection_params = $reflection_method->getParameters();
-    $reflection_param_modifier = [];
-    foreach ($reflection_params as $param) {
-        if ($param->isDefaultValueAvailable()) {
-            $default_value = $param->getDefaultValue();
-        } else {
-            $default_value = null;
-        }
-        if ($param->hasType()) {
-            $type = $param->getType()->getName();
-        } else {
-            $type = null;
-        }
-        $reflection_param_modifier[] = [$default_value, $type];
-    }
+    $reflection_parameters = $reflection_method->getParameters();
+    $parameters = [];
+    foreach ($reflection_parameters as $reflection_parameter) {
+        $parameter = new stdClass();
+        $parameter->name = $reflection_parameter->getName();
+        $parameter->value = isset($_POST[$parameter->name]) ? $_GET[$parameter->name] : null;
+        $parameter->value = isset($_GET[$parameter->name]) ? $_GET[$parameter->name] : $parameter->value;
 
-    $instance = $reflection_class->newInstance();
-    $view = $reflection_method->invoke($instance);
+        if ($reflection_parameter->isDefaultValueAvailable()) {
+            $parameter->default_value = $reflection_parameter->getDefaultValue();
+        } else {
+            $parameter->default_value = null;
+        }
+        if ($reflection_parameter->hasType()) {
+            $parameter->type = $reflection_parameter->getType()->getName();
+        } else {
+            $parameter->type = null;
+        }
+        $parameters[] = $parameter;
+    }
+    //load class Gate
+    if (!file_exists(SIMPLEPHP_DIR . DIRECTORY_SEPARATOR . "Gate.php")) {
+        throw new \SimplePhp\Exception("Gate.php is not exist! Gate.php: " . SIMPLEPHP_DIR . DIRECTORY_SEPARATOR . "Gate.php");
+    } else {
+        $gate = new \SimplePhp\Gate($reflection_class, $reflection_method, $parameters);
+        $gate->addChecker(new Models\ParamsChecker());
+        if ($gate->check()) {
+            $instance = $reflection_class->newInstance();
+            $view = $reflection_method->invokeArgs($instance, array_column($parameters, 'value'));
+        } else {
+            die($gate->getLastError());
+        }
+    }
 } catch (ReflectionException $e) {
     die("Welcome SimplePhp Vol.0.0.0.1!");
 }
 
 ob_start();
 
-if (is_array($view) || is_object($view)) {
+if (is_array($view) || is_object($view) || is_bool($view)) {
     header("content-type:text/json");
     echo json_encode($view);
 } else if (is_resource($view) && get_resource_type($view) == "gd") {
