@@ -32,7 +32,7 @@ class ImageCloud extends DBModel
     {
         $image_name = null;
         foreach ($result->image_names as $value) {
-            if ("$name.$form" == $value) {
+            if ("$name . $form" == $value) {
                 return $value;
             } else if ($name == implode('.', array_slice(explode('.', $value), 0, -1))) {
                 $image_name = $value;

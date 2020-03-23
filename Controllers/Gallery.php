@@ -18,6 +18,10 @@ class Gallery extends ControllerBase
 {
     private $image_cloud;
 
+    /**
+     * @throws \ReflectionException
+     * @throws \SimplePhp\Exception
+     */
     protected function onCreate()
     {
         $this->image_cloud = new \Models\ImageCloud();
